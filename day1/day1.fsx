@@ -93,3 +93,14 @@ similarityCalculator (list1 |> Array.toList) (list2 |> Array.toList) 0 0 0
 //Also, we could possibly have used unzip to get list1 and list2, instead of mapping with fst and snd. Let's try:
 let (list1', list2') = Array.unzip pairs ||> fun a b -> (Array.sort a, Array.sort b)
 list1 = list1' && list2 = list2'
+
+
+(*
+Benchmark results:
+| Method | Mean      | Error    | StdDev   | Ratio | Gen0    | Gen1   | Allocated | Alloc Ratio |
+|------- |----------:|---------:|---------:|------:|--------:|-------:|----------:|------------:|
+| simple | 238.53 us | 1.812 us | 1.606 us |  1.00 | 21.7285 | 0.2441 | 178.58 KB |        1.00 |
+| funky  |  68.90 us | 0.507 us | 0.449 us |  0.29 | 22.8271 | 2.4414 | 187.27 KB |        1.05 |
+
+The funky version is more than 240% faster, so seems to be worthwhile. 10x Gen1 collections is probably due to continually dropping the lists' heads. Alloctions hardly up
+*)
