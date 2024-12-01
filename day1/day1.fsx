@@ -52,4 +52,44 @@ Thoughts on efficiency:
 In Part1 it may save space to perform sorted inserts when reading each line, rather than reading the whole input into an array and then also having an intermediate list of pairs
 
 In Part2, we could use the fact that both lists are sorted to traverse each list once
+
+Or rather, both lists once....
+Our function (one of a pair) would take
+* the number in list1 we're looking at (start from 0),
+* everything in list1 we haven't traversed yet,
+* everything in list2 we haven't traversed yet,
+* and the current total
+
+The complementary function takes
+* the number from list1 we're looking for in list2
+* and everything in list2 we haven't traversed yet,
+and it returns
+* the count of elements in list2 that are equal to the number from list1
+* and the rest of list2 that is greater that the number from list1
 *)
+
+let rec countAndSkip xs n acc =
+    match xs with
+    | [] -> ([], acc)
+    | head :: tail when head < n -> countAndSkip tail n 0
+    | head :: tail when head = n -> countAndSkip tail n (acc + 1)
+    | _ -> (xs, acc)
+
+let rec similarityCalculator ones twos acc lastN lastNCountInTwos=
+    match ones with
+    | [] -> acc
+    | head :: tail when head = lastN -> similarityCalculator tail twos (acc + (head * lastNCountInTwos)) lastN lastNCountInTwos
+    | head :: tail ->
+        let (remainingTwos, countN) = countAndSkip twos head 0
+        similarityCalculator tail remainingTwos (acc + head * countN) head countN
+
+similarityCalculator (list1 |> Array.toList) (list2 |> Array.toList) 0 0 0
+//val it: int = 21328497
+//Awesome, we've got the same result!
+
+//Let's benchmark it to see what the difference in the two styles is. Was it worth the head scratching to craft the two tail recursive functions?
+
+
+//Also, we could possibly have used unzip to get list1 and list2, instead of mapping with fst and snd. Let's try:
+let (list1', list2') = Array.unzip pairs ||> fun a b -> (Array.sort a, Array.sort b)
+list1 = list1' && list2 = list2'
