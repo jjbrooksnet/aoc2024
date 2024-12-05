@@ -67,9 +67,9 @@ let sample = "47|53
 97,13,75,29,47"
 
 
-
+//(Added removal of /r from input as Push/Pull with Github converted /n to /r/n)
 let processInput (input: string) =
-    input.Split "\n\n"
+    input.Replace("\r", "").Split "\n\n"
     |> (fun (parts) -> (parts.[0].Split '\n', parts.[1].Split '\n'))
     |> (fun (rules, pages) -> (
         rules |> Array.map stringToPageOrderRule |> Array.choose id |> Array.toList |> orderRulesToMap,
@@ -94,4 +94,33 @@ pageLists
 (*
 Had an issue with trailing newline in the file. Removed the trailing newline rather than deal with it :>
 *)
-//val it: int = 5129     
+//val it: int = 5129
+(*
+One star!
+
+On to part 2....
+
+We can create a custom comparison function that compares 2 numbers a and b and returns LT if b is in a's succedents list
+(The instructions imply that there is a total ordering because a unique solution for each currently invalid book exists)
+*)
+
+let ruleComparerFactory (ruleMap: Map<int, int list>) =
+    (fun (a: int) (b: int) ->
+        if ruleMap |> Map.containsKey a then
+            let succedentsFromRules = ruleMap |> Map.find a
+            if succedentsFromRules |> List.contains b then
+                compare 0 1
+            else
+                compare 1 0
+        else
+            failwith $"Partial ordering of {a} and {b}; no rule for {a}")
+
+[43;66] |> List.sortWith (ruleComparerFactory orderMap) //[43; 66]
+[66;43] |> List.sortWith (ruleComparerFactory orderMap) //[43; 66]
+
+pageLists
+|> Array.filter (checkPageListCompliesWith orderMap >> not)
+|> Array.map (List.sortWith (ruleComparerFactory orderMap) >> getMiddle)
+|> Array.sum
+//4077
+//GOLD STAR!!
